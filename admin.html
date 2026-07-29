@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - Media Manager</title>
+<meta name="robots" content="noindex, nofollow">
+<script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+<script src="media-config.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    margin: 0;
+    padding: 20px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  p.sub { color: #94a3b8; margin-top: 0; font-size: 14px; }
+
+  /* ---- Login Screen ---- */
+  #loginScreen {
+    max-width: 360px;
+    margin: 80px auto;
+    background: #1e293b;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+  }
+  #loginScreen input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #fff;
+  }
+  #loginScreen button, .btn {
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  #loginScreen button:hover, .btn:hover { background: #2563eb; }
+  #loginError { color: #f87171; font-size: 13px; min-height: 18px; }
+
+  /* ---- Settings Panel ---- */
+  .settings-box, .media-card {
+    background: #1e293b;
+    padding: 18px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+  }
+  .settings-box input {
+    width: 100%;
+    padding: 8px;
+    margin: 6px 0 12px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #fff;
+  }
+  label { font-size: 13px; color: #94a3b8; }
+
+  .media-grid { display: grid; gap: 14px; }
+  .media-card { display: flex; gap: 14px; align-items: center; }
+  .media-card img {
+    width: 90px; height: 90px; object-fit: cover;
+    border-radius: 8px; background: #0f172a; flex-shrink: 0;
+  }
+  .media-info { flex: 1; }
+  .media-info h3 { margin: 0 0 4px; font-size: 15px; }
+  .media-info .key { font-size: 11px; color: #64748b; }
+  .media-info .current-url {
+    font-size: 12px; color: #94a3b8; word-break: break-all;
+    margin: 6px 0;
+  }
+  .status-pill {
+    display: inline-block; font-size: 11px; padding: 2px 8px;
+    border-radius: 20px; margin-left: 8px;
+  }
+  .status-pending { background: #78350f; color: #fbbf24; }
+  .status-updated { background: #14532d; color: #4ade80; }
+
+  #saveBar {
+    position: sticky; bottom: 0; background: #1e293b;
+    padding: 14px 18px; border-radius: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px;
+  }
+  #saveMsg { font-size: 13px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="loginScreen">
+  <h2>🔒 Admin Login</h2>
+  <p class="sub">Sirf aapke liye — password daalo</p>
+  <input type="password" id="passwordInput" placeholder="Password" />
+  <br>
+  <button onclick="checkPassword()">Login</button>
+  <div id="loginError"></div>
+</div>
+
+<!-- ============ MAIN ADMIN PANEL (hidden until login) ============ -->
+<div class="wrap" id="adminPanel" style="display:none;">
+  <h1>📸 Media Manager</h1>
+  <p class="sub">Yahan se images/videos badlo — save karte hi website par live ho jayega (2-3 min me).</p>
+
+  <div class="settings-box">
+    <strong>⚙️ One-time Setup (GitHub + Cloudinary)</strong>
+    <label>GitHub Username</label>
+    <input id="ghOwner" placeholder="e.g. firoj-mulla" />
+    <label>Repository Name</label>
+    <input id="ghRepo" placeholder="e.g. portfolio" />
+    <label>Branch</label>
+    <input id="ghBranch" value="main" />
+    <label>GitHub Personal Access Token (kept only in this browser session, never saved anywhere)</label>
+    <input id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxx" />
+    <label>Cloudinary Cloud Name</label>
+    <input id="cloudName" placeholder="e.g. dfzyrcron" />
+    <label>Cloudinary Unsigned Upload Preset</label>
+    <input id="uploadPreset" placeholder="e.g. portfolio_uploads" />
+  </div>
+
+  <div class="media-grid" id="mediaGrid"></div>
+
+  <div id="saveBar">
+    <span id="saveMsg">Koi changes nahi hue abhi.</span>
+    <button class="btn" onclick="saveAllChanges()">💾 Save All Changes to Website</button>
+  </div>
+</div>
+
+<script>
+  // ================================================================
+  // SIMPLE PASSWORD GATE
+  // NOTE: Ye sirf casual protection hai (personal portfolio ke liye
+  // theek hai), kisi sensitive/business data ke liye proper login
+  // (Netlify Identity / Firebase Auth) use karo.
+  // ================================================================
+  const ADMIN_PASSWORD = "changeThisPassword123"; // <-- ise apna password banake badal do
+
+  function checkPassword() {
+    const val = document.getElementById("passwordInput").value;
+    if (val === ADMIN_PASSWORD) {
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+      renderMediaGrid();
+    } else {
+      document.getElementById("loginError").innerText = "Galat password, dubara try karo.";
+    }
+  }
+
+  // Local working copy of changes (only committed on "Save")
+  let pendingChanges = {};
+
+  function renderMediaGrid() {
+    const grid = document.getElementById("mediaGrid");
+    grid.innerHTML = "";
+    Object.keys(mediaConfig).forEach((key) => {
+      const entry = mediaConfig[key];
+      const card = document.createElement("div");
+      card.className = "media-card";
+      card.id = "card-" + key;
+      card.innerHTML = `
+        <img src="${entry.url}" onerror="this.style.opacity=0.2" />
+        <div class="media-info">
+          <h3>${entry.label} <span class="status-pill status-pending" id="status-${key}" style="display:none;">Updated</span></h3>
+          <div class="key">key: ${key}</div>
+          <div class="current-url" id="url-${key}">${entry.url}</div>
+          <button class="btn" onclick="openUploader('${key}')">⬆️ Upload New ${entry.type === 'file' ? 'File' : 'Image'}</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function openUploader(key) {
+    const cloudName = document.getElementById("cloudName").value.trim();
+    const uploadPreset = document.getElementById("uploadPreset").value.trim();
+    if (!cloudName || !uploadPreset) {
+      alert("Pehle upar 'Cloudinary Cloud Name' aur 'Upload Preset' bharo.");
+      return;
+    }
+    const widget = cloudinary.createUploadWidget(
+      {
+        cloudName: cloudName,
+        uploadPreset: uploadPreset,
+        multiple: false,
+        resourceType: mediaConfig[key].type === "file" ? "auto" : "image"
+      },
+      (error, result) => {
+        if (!error && result && result.event === "success") {
+          const newUrl = result.info.secure_url;
+          mediaConfig[key].url = newUrl;
+          pendingChanges[key] = newUrl;
+
+          document.querySelector(`#card-${key} img`).src = newUrl;
+          document.getElementById(`url-${key}`).innerText = newUrl;
+          const pill = document.getElementById(`status-${key}`);
+          pill.style.display = "inline-block";
+          pill.className = "status-pill status-updated";
+
+          document.getElementById("saveMsg").innerText =
+            Object.keys(pendingChanges).length + " image(s) change hui — Save button dabao.";
+        }
+      }
+    );
+    widget.open();
+  }
+
+  // ================================================================
+  // SAVE TO GITHUB (updates media-config.js file directly in repo)
+  // ================================================================
+  async function saveAllChanges() {
+    const owner = document.getElementById("ghOwner").value.trim();
+    const repo = document.getElementById("ghRepo").value.trim();
+    const branch = document.getElementById("ghBranch").value.trim() || "main";
+    const token = document.getElementById("ghToken").value.trim();
+    const path = "media-config.js";
+
+    if (!owner || !repo || !token) {
+      alert("Pehle GitHub Username, Repo Name aur Token bharo.");
+      return;
+    }
+    if (Object.keys(pendingChanges).length === 0) {
+      alert("Koi naya change nahi hai save karne ke liye.");
+      return;
+    }
+
+    document.getElementById("saveMsg").innerText = "Saving... GitHub par update ho raha hai.";
+
+    try {
+      // Step 1: current file ka SHA lo (GitHub ko chahiye update ke liye)
+      const getRes = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
+        { headers: { Authorization: `token ${token}` } }
+      );
+      if (!getRes.ok) throw new Error("File nahi mili — repo/branch/token check karo.");
+      const getData = await getRes.json();
+      const sha = getData.sha;
+
+      // Step 2: naya file content banao (updated mediaConfig ke sath)
+      const newFileContent = generateConfigFileText();
+      const encodedContent = btoa(unescape(encodeURIComponent(newFileContent)));
+
+      // Step 3: GitHub par PUT karke update commit karo
+      const putRes = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `token ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            message: "Update media via admin panel",
+            content: encodedContent,
+            sha: sha,
+            branch: branch
+          })
+        }
+      );
+
+      if (!putRes.ok) throw new Error("Save fail hua — token permissions check karo.");
+
+      document.getElementById("saveMsg").innerText =
+        "✅ Save ho gaya! Netlify 2-3 minute me website update kar dega.";
+      pendingChanges = {};
+    } catch (err) {
+      document.getElementById("saveMsg").innerText = "❌ Error: " + err.message;
+    }
+  }
+
+  // Rebuilds the media-config.js file text with updated URLs
+  function generateConfigFileText() {
+    let entries = Object.keys(mediaConfig).map((key) => {
+      const e = mediaConfig[key];
+      return `  ${key}: {\n    label: ${JSON.stringify(e.label)},\n    type: ${JSON.stringify(e.type)},\n    url: ${JSON.stringify(e.url)}\n  }`;
+    }).join(",\n\n");
+
+    return `/*
+  MEDIA CONFIG FILE - auto-updated by admin.html, save time: ${new Date().toISOString()}
+*/
+
+const mediaConfig = {
+${entries}
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("[data-media-key]").forEach((el) => {
+    const key = el.getAttribute("data-media-key");
+    const entry = mediaConfig[key];
+    if (!entry || !entry.url) return;
+    if (el.tagName === "IMG" || el.tagName === "VIDEO" || el.tagName === "SOURCE") {
+      el.setAttribute("src", entry.url);
+    } else if (el.tagName === "A") {
+      el.setAttribute("href", entry.url);
+    }
+  });
+});
+`;
+  }
+</script>
+</body>
+</html>
