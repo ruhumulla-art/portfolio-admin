@@ -3,169 +3,524 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel - Media Manager</title>
+<title>Portfolio Admin | Media Manager</title>
 <meta name="robots" content="noindex, nofollow">
 <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
 <script src="media-config.js"></script>
 <style>
+  :root {
+    --bg-0: #0b1220;
+    --bg-1: #111a2e;
+    --bg-2: #17223b;
+    --bg-3: #1f2c48;
+    --border: #26314d;
+    --accent: #4f7cff;
+    --accent-hover: #3d68f0;
+    --text-0: #f1f5f9;
+    --text-1: #9fb0cc;
+    --text-2: #6b7a99;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+  }
   * { box-sizing: border-box; }
   body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: #0f172a;
-    color: #e2e8f0;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-0);
+    color: var(--text-0);
     margin: 0;
-    padding: 20px;
+    -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 900px; margin: 0 auto; }
-  h1 { font-size: 22px; margin-bottom: 4px; }
-  p.sub { color: #94a3b8; margin-top: 0; font-size: 14px; }
+  button { font-family: inherit; cursor: pointer; }
+  input { font-family: inherit; }
 
-  /* ---- Login Screen ---- */
+  /* ============ LOGIN SCREEN ============ */
   #loginScreen {
-    max-width: 360px;
-    margin: 80px auto;
-    background: #1e293b;
-    padding: 30px;
-    border-radius: 12px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .login-card {
+    width: 360px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    padding: 36px 32px;
+    border-radius: 14px;
     text-align: center;
   }
-  #loginScreen input {
+  .login-card .lock-icon { font-size: 32px; margin-bottom: 8px; }
+  .login-card h2 { margin: 0 0 6px; font-size: 20px; }
+  .login-card p { color: var(--text-1); font-size: 13px; margin: 0 0 20px; }
+  .login-card input {
     width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 6px;
-    border: 1px solid #334155;
-    background: #0f172a;
-    color: #fff;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-0);
+    color: var(--text-0);
+    font-size: 14px;
+    margin-bottom: 14px;
   }
-  #loginScreen button, .btn {
-    background: #3b82f6;
+  .login-card input:focus { outline: none; border-color: var(--accent); }
+  .primary-btn {
+    width: 100%;
+    background: var(--accent);
     color: #fff;
     border: none;
-    padding: 10px 16px;
-    border-radius: 6px;
-    cursor: pointer;
+    padding: 12px;
+    border-radius: 8px;
     font-size: 14px;
+    font-weight: 600;
   }
-  #loginScreen button:hover, .btn:hover { background: #2563eb; }
-  #loginError { color: #f87171; font-size: 13px; min-height: 18px; }
+  .primary-btn:hover { background: var(--accent-hover); }
+  #loginError { color: var(--danger); font-size: 12px; min-height: 16px; margin-top: 10px; }
 
-  /* ---- Settings Panel ---- */
-  .settings-box, .media-card {
-    background: #1e293b;
-    padding: 18px;
-    border-radius: 10px;
-    margin-bottom: 16px;
-  }
-  .settings-box input {
-    width: 100%;
-    padding: 8px;
-    margin: 6px 0 12px;
-    border-radius: 6px;
-    border: 1px solid #334155;
-    background: #0f172a;
-    color: #fff;
-  }
-  label { font-size: 13px; color: #94a3b8; }
+  /* ============ APP SHELL ============ */
+  #app { display: none; min-height: 100vh; grid-template-columns: 240px 1fr; }
+  #app.active { display: grid; }
 
-  .media-grid { display: grid; gap: 14px; }
-  .media-card { display: flex; gap: 14px; align-items: center; }
-  .media-card img {
-    width: 90px; height: 90px; object-fit: cover;
-    border-radius: 8px; background: #0f172a; flex-shrink: 0;
+  /* Sidebar */
+  #sidebar {
+    background: var(--bg-1);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
   }
-  .media-info { flex: 1; }
-  .media-info h3 { margin: 0 0 4px; font-size: 15px; }
-  .media-info .key { font-size: 11px; color: #64748b; }
-  .media-info .current-url {
-    font-size: 12px; color: #94a3b8; word-break: break-all;
-    margin: 6px 0;
+  .brand { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  .brand .name { font-weight: 700; font-size: 15px; }
+  .brand .sub { color: var(--text-2); font-size: 11px; margin-top: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 20px;
+    color: var(--text-1);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all .15s;
+  }
+  .nav-item:hover { background: var(--bg-2); color: var(--text-0); }
+  .nav-item.active { background: var(--bg-2); color: var(--text-0); border-left-color: var(--accent); }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-spacer { flex: 1; }
+  .nav-footer { padding: 14px 20px; border-top: 1px solid var(--border); color: var(--text-2); font-size: 11px; }
+
+  /* Main content */
+  #main { padding: 24px 32px 80px; overflow-y: auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
+  .page-header h1 { font-size: 21px; margin: 0; }
+  .page-header p.desc { color: var(--text-1); font-size: 13px; margin: 4px 0 0; }
+
+  /* Dashboard stat cards */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .stat-card .stat-num { font-size: 24px; font-weight: 700; }
+  .stat-card .stat-label { color: var(--text-1); font-size: 12px; margin-top: 4px; }
+
+  .panel { background: var(--bg-1); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; }
+  .panel h3 { margin: 0 0 14px; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-1); }
+
+  /* Search bar */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .search-box {
+    flex: 1; min-width: 220px;
+    background: var(--bg-1); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+    color: var(--text-0); font-size: 13.5px;
+  }
+  .search-box:focus { outline: none; border-color: var(--accent); }
+  .filter-chip {
+    padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg-1); color: var(--text-1); font-size: 12.5px; font-weight: 500;
+  }
+  .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Media grid */
+  .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .media-card {
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; transition: border-color .15s;
+  }
+  .media-card:hover { border-color: #34456e; }
+  .media-thumb {
+    width: 100%; height: 150px; background: var(--bg-0);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    position: relative;
+  }
+  .media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .media-thumb.dragover { outline: 2px dashed var(--accent); outline-offset: -6px; }
+  .media-thumb .drop-hint {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(79,124,255,.15); color: var(--accent); font-size: 12px; font-weight: 600;
+  }
+  .media-thumb.dragover .drop-hint { display: flex; }
+  .media-body { padding: 14px; }
+  .media-body h4 { margin: 0 0 3px; font-size: 13.5px; }
+  .media-body .key-tag {
+    display: inline-block; font-size: 10px; color: var(--text-2);
+    background: var(--bg-0); border: 1px solid var(--border);
+    padding: 2px 6px; border-radius: 4px; margin-bottom: 8px; font-family: monospace;
   }
   .status-pill {
-    display: inline-block; font-size: 11px; padding: 2px 8px;
-    border-radius: 20px; margin-left: 8px;
+    display: inline-block; font-size: 10px; padding: 2px 8px;
+    border-radius: 20px; margin-left: 6px; font-weight: 600;
   }
-  .status-pending { background: #78350f; color: #fbbf24; }
-  .status-updated { background: #14532d; color: #4ade80; }
+  .status-updated { background: rgba(34,197,94,.15); color: var(--success); }
+  .btn-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .mini-btn {
+    flex: 1; min-width: 90px;
+    background: var(--bg-2); color: var(--text-0); border: 1px solid var(--border);
+    padding: 7px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600;
+  }
+  .mini-btn:hover { background: var(--bg-3); }
+  .mini-btn.primary { background: var(--accent); border-color: var(--accent); }
+  .mini-btn.primary:hover { background: var(--accent-hover); }
 
-  #saveBar {
-    position: sticky; bottom: 0; background: #1e293b;
-    padding: 14px 18px; border-radius: 10px;
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 20px;
+  /* Settings form */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-field { display: flex; flex-direction: column; }
+  .form-field.full { grid-column: 1 / -1; }
+  .form-field label { font-size: 12px; color: var(--text-1); margin-bottom: 6px; font-weight: 500; }
+  .form-field input {
+    padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg-0); color: var(--text-0); font-size: 13.5px;
   }
-  #saveMsg { font-size: 13px; color: #94a3b8; }
+  .form-field input:focus { outline: none; border-color: var(--accent); }
+  .form-field .hint { font-size: 11px; color: var(--text-2); margin-top: 4px; }
+  .save-indicator { font-size: 11px; color: var(--success); margin-top: 4px; display: none; }
+
+  /* Sticky save bar */
+  #saveBar {
+    position: fixed; bottom: 0; left: 240px; right: 0;
+    background: var(--bg-1); border-top: 1px solid var(--border);
+    padding: 14px 32px; display: flex; justify-content: space-between; align-items: center;
+    z-index: 50;
+  }
+  #saveMsg { font-size: 12.5px; color: var(--text-1); }
+
+  code.inline { background: var(--bg-0); padding: 2px 6px; border-radius: 4px; font-size: 11.5px; color: var(--text-1); }
 </style>
 </head>
 <body>
 
 <!-- ============ LOGIN SCREEN ============ -->
 <div id="loginScreen">
-  <h2>🔒 Admin Login</h2>
-  <p class="sub">Sirf aapke liye — password daalo</p>
-  <input type="password" id="passwordInput" placeholder="Password" />
-  <br>
-  <button onclick="checkPassword()">Login</button>
-  <div id="loginError"></div>
+  <div class="login-card">
+    <div class="lock-icon">🔒</div>
+    <h2>Admin Login</h2>
+    <p>Enter your password to access the Media Manager</p>
+    <input type="password" id="passwordInput" placeholder="Password" onkeydown="if(event.key==='Enter') checkPassword();" />
+    <button class="primary-btn" onclick="checkPassword()">Log In</button>
+    <div id="loginError"></div>
+  </div>
 </div>
 
-<!-- ============ MAIN ADMIN PANEL (hidden until login) ============ -->
-<div class="wrap" id="adminPanel" style="display:none;">
-  <h1>📸 Media Manager</h1>
-  <p class="sub">Yahan se images/videos badlo — save karte hi website par live ho jayega (2-3 min me).</p>
-
-  <div class="settings-box">
-    <strong>⚙️ One-time Setup (GitHub + Cloudinary)</strong>
-    <label>GitHub Username</label>
-    <input id="ghOwner" placeholder="e.g. firoj-mulla" />
-    <label>Repository Name</label>
-    <input id="ghRepo" placeholder="e.g. portfolio" />
-    <label>Branch</label>
-    <input id="ghBranch" value="main" />
-    <label>GitHub Personal Access Token (kept only in this browser session, never saved anywhere)</label>
-    <input id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxx" />
-    <label>Cloudinary Cloud Name</label>
-    <input id="cloudName" placeholder="e.g. dfzyrcron" />
-    <label>Cloudinary Unsigned Upload Preset</label>
-    <input id="uploadPreset" placeholder="e.g. portfolio_uploads" />
+<!-- ============ APP SHELL ============ -->
+<div id="app">
+  <div id="sidebar">
+    <div class="brand">
+      <div class="name">Portfolio Admin</div>
+      <div class="sub">Media Management Console</div>
+    </div>
+    <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+      <span class="icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" data-page="media" onclick="switchPage('media')">
+      <span class="icon">🖼️</span> Media Library
+    </div>
+    <div class="nav-item" data-page="settings" onclick="switchPage('settings')">
+      <span class="icon">⚙️</span> Connection Settings
+    </div>
+    <div class="nav-item" data-page="security" onclick="switchPage('security')">
+      <span class="icon">🔑</span> Security
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-item" onclick="logout()">
+      <span class="icon">🚪</span> Log Out
+    </div>
+    <div class="nav-footer">Signed in as Admin · Auto-logout after 15 min idle</div>
   </div>
 
-  <div class="media-grid" id="mediaGrid"></div>
+  <div id="main">
+
+    <!-- ===== DASHBOARD PAGE ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="desc">Overview of your website's media assets</p>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total Media Items</div></div>
+        <div class="stat-card"><div class="stat-num" id="statImages">0</div><div class="stat-label">Images</div></div>
+        <div class="stat-card"><div class="stat-num" id="statFiles">0</div><div class="stat-label">Files / Documents</div></div>
+        <div class="stat-card"><div class="stat-num" id="statCloudinary">0</div><div class="stat-label">Hosted on Cloudinary</div></div>
+        <div class="stat-card"><div class="stat-num" id="statPending">0</div><div class="stat-label">Unsaved Changes</div></div>
+      </div>
+      <div class="panel">
+        <h3>Quick Start</h3>
+        <p style="color:var(--text-1); font-size:13.5px; line-height:1.7; margin:0;">
+          1. Go to <b>Connection Settings</b> and enter your GitHub and Cloudinary details once — they are saved automatically for future logins.<br>
+          2. Go to <b>Media Library</b> to upload, replace, or link images and files for every section of your site.<br>
+          3. After making changes, click <b>Save All Changes to Website</b> at the bottom — your live site updates in 1–2 minutes.
+        </p>
+      </div>
+    </div>
+
+    <!-- ===== MEDIA LIBRARY PAGE ===== -->
+    <div class="page" id="page-media">
+      <div class="page-header">
+        <div>
+          <h1>Media Library</h1>
+          <p class="desc">Upload, replace, or link images and files used across your website</p>
+        </div>
+      </div>
+      <div class="toolbar">
+        <input class="search-box" id="searchBox" placeholder="Search by name or key..." oninput="renderMediaGrid()" />
+        <button class="filter-chip active" data-filter="all" onclick="setFilter('all')">All</button>
+        <button class="filter-chip" data-filter="image" onclick="setFilter('image')">Images</button>
+        <button class="filter-chip" data-filter="file" onclick="setFilter('file')">Files</button>
+      </div>
+      <div class="media-grid" id="mediaGrid"></div>
+    </div>
+
+    <!-- ===== CONNECTION SETTINGS PAGE ===== -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <div>
+          <h1>Connection Settings</h1>
+          <p class="desc">One-time setup — these details are saved automatically in this browser</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>GitHub Repository</h3>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>GitHub Username</label>
+            <input id="ghOwner" placeholder="e.g. ruhumulla-art" />
+          </div>
+          <div class="form-field">
+            <label>Repository Name</label>
+            <input id="ghRepo" placeholder="e.g. portfolio-admin" />
+          </div>
+          <div class="form-field">
+            <label>Branch</label>
+            <input id="ghBranch" value="main" />
+          </div>
+          <div class="form-field">
+            <label>Personal Access Token</label>
+            <input id="ghToken" type="password" placeholder="github_pat_xxxxxxxx" />
+            <div class="hint">Stored only for this browser session (cleared when tab closes), for security.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Cloudinary Media Storage</h3>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Cloud Name</label>
+            <input id="cloudName" placeholder="e.g. dfzyrcron" />
+          </div>
+          <div class="form-field">
+            <label>Unsigned Upload Preset</label>
+            <input id="uploadPreset" placeholder="e.g. portfolio_uploads" />
+          </div>
+        </div>
+        <div class="save-indicator" id="settingsSavedMsg">✓ Settings saved automatically</div>
+      </div>
+    </div>
+
+    <!-- ===== SECURITY PAGE ===== -->
+    <div class="page" id="page-security">
+      <div class="page-header">
+        <div>
+          <h1>Security</h1>
+          <p class="desc">Change your admin panel password</p>
+        </div>
+      </div>
+      <div class="panel" style="max-width:420px;">
+        <h3>Change Password</h3>
+        <div class="form-field" style="margin-bottom:12px;">
+          <label>Current Password</label>
+          <input id="currentPass" type="password" placeholder="Enter current password" />
+        </div>
+        <div class="form-field" style="margin-bottom:12px;">
+          <label>New Password</label>
+          <input id="newPass" type="password" placeholder="Enter new password" />
+        </div>
+        <div class="form-field" style="margin-bottom:14px;">
+          <label>Confirm New Password</label>
+          <input id="confirmPass" type="password" placeholder="Re-enter new password" />
+        </div>
+        <button class="primary-btn" onclick="changePassword()">Update Password</button>
+        <div id="passChangeMsg" style="font-size:12px; margin-top:10px;"></div>
+        <p class="hint" style="margin-top:14px;">Note: the password is stored only in this browser (not on GitHub), so it must be changed again on any other device.</p>
+      </div>
+    </div>
+
+  </div>
 
   <div id="saveBar">
-    <span id="saveMsg">Koi changes nahi hue abhi.</span>
-    <button class="btn" onclick="saveAllChanges()">💾 Save All Changes to Website</button>
+    <span id="saveMsg">No changes yet.</span>
+    <button class="primary-btn" style="width:auto; padding:10px 22px;" onclick="saveAllChanges()">💾 Save All Changes to Website</button>
   </div>
 </div>
 
 <script>
   // ================================================================
-  // SIMPLE PASSWORD GATE
-  // NOTE: Ye sirf casual protection hai (personal portfolio ke liye
-  // theek hai), kisi sensitive/business data ke liye proper login
-  // (Netlify Identity / Firebase Auth) use karo.
+  // PASSWORD SECURITY
+  // - Password is never stored in plaintext, only as a SHA-256 hash
+  // - After 5 wrong attempts, login locks for 60 seconds
   // ================================================================
-  const ADMIN_PASSWORD = "changeThisPassword123"; // <-- ise apna password banake badal do
+  const DEFAULT_PASSWORD = "changeThisPassword123"; // change this once via Security tab after first login
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_MS = 60000;
 
-  function checkPassword() {
+  async function sha256(text) {
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest("SHA-256", enc);
+    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  let cachedDefaultHash = null;
+  async function getCurrentPasswordHash() {
+    const stored = localStorage.getItem("admin_password_hash");
+    if (stored) return stored;
+    if (!cachedDefaultHash) cachedDefaultHash = await sha256(DEFAULT_PASSWORD);
+    return cachedDefaultHash;
+  }
+
+  function isLockedOut() {
+    const until = parseInt(localStorage.getItem("admin_lockout_until") || "0", 10);
+    return Date.now() < until;
+  }
+  function lockoutSecondsLeft() {
+    const until = parseInt(localStorage.getItem("admin_lockout_until") || "0", 10);
+    return Math.ceil((until - Date.now()) / 1000);
+  }
+  function recordFailedAttempt() {
+    let attempts = parseInt(localStorage.getItem("admin_attempts") || "0", 10) + 1;
+    if (attempts >= MAX_ATTEMPTS) {
+      localStorage.setItem("admin_lockout_until", Date.now() + LOCKOUT_MS);
+      attempts = 0;
+    }
+    localStorage.setItem("admin_attempts", attempts);
+    return MAX_ATTEMPTS - attempts;
+  }
+  function resetLoginAttempts() {
+    localStorage.setItem("admin_attempts", "0");
+    localStorage.removeItem("admin_lockout_until");
+  }
+
+  async function checkPassword() {
+    const errEl = document.getElementById("loginError");
+    if (isLockedOut()) {
+      errEl.innerText = `Too many attempts. Try again in ${lockoutSecondsLeft()}s.`;
+      return;
+    }
     const val = document.getElementById("passwordInput").value;
-    if (val === ADMIN_PASSWORD) {
+    const inputHash = await sha256(val);
+    const currentHash = await getCurrentPasswordHash();
+
+    if (inputHash === currentHash) {
+      resetLoginAttempts();
       document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("adminPanel").style.display = "block";
-      renderMediaGrid();
+      document.getElementById("app").classList.add("active");
       loadSavedSettings();
       attachSettingsAutoSave();
+      renderMediaGrid();
+      updateDashboardStats();
+      startInactivityTimer();
     } else {
-      document.getElementById("loginError").innerText = "Galat password, dubara try karo.";
+      const remaining = recordFailedAttempt();
+      errEl.innerText = remaining > 0
+        ? `Incorrect password. ${remaining} attempt(s) left.`
+        : `Too many attempts. Locked for 60 seconds.`;
     }
   }
 
+  function logout() {
+    document.getElementById("app").classList.remove("active");
+    document.getElementById("loginScreen").style.display = "flex";
+    document.getElementById("passwordInput").value = "";
+    sessionStorage.removeItem("admin_ghToken");
+    clearTimeout(inactivityTimer);
+  }
+
   // ================================================================
-  // REMEMBER SETTINGS SO FORM DOESN'T EMPTY OUT EVERY LOGIN
-  // Non-sensitive fields (username, repo, branch, cloudinary info)
-  // are saved in localStorage (permanent, this device only).
-  // The GitHub token is saved in sessionStorage only (cleared when
-  // you close the browser tab) - safer, since it's a sensitive key.
+  // AUTO-LOGOUT AFTER INACTIVITY (15 minutes)
+  // ================================================================
+  let inactivityTimer;
+  const INACTIVITY_LIMIT_MS = 15 * 60 * 1000;
+
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+      alert("You've been logged out due to inactivity.");
+      logout();
+    }, INACTIVITY_LIMIT_MS);
+  }
+  function startInactivityTimer() {
+    ["mousemove", "keydown", "click", "scroll"].forEach((evt) =>
+      document.addEventListener(evt, resetInactivityTimer)
+    );
+    resetInactivityTimer();
+  }
+
+  function changePassword() {
+    const current = document.getElementById("currentPass").value;
+    const next = document.getElementById("newPass").value;
+    const confirmVal = document.getElementById("confirmPass").value;
+    const msg = document.getElementById("passChangeMsg");
+
+    (async () => {
+      const currentHash = await sha256(current);
+      const storedHash = await getCurrentPasswordHash();
+
+      if (currentHash !== storedHash) {
+        msg.style.color = "var(--danger)";
+        msg.innerText = "Current password is incorrect.";
+        return;
+      }
+      if (next.length < 6) {
+        msg.style.color = "var(--danger)";
+        msg.innerText = "New password must be at least 6 characters.";
+        return;
+      }
+      if (next !== confirmVal) {
+        msg.style.color = "var(--danger)";
+        msg.innerText = "New password and confirmation do not match.";
+        return;
+      }
+      const newHash = await sha256(next);
+      localStorage.setItem("admin_password_hash", newHash);
+      msg.style.color = "var(--success)";
+      msg.innerText = "✓ Password updated successfully.";
+      document.getElementById("currentPass").value = "";
+      document.getElementById("newPass").value = "";
+      document.getElementById("confirmPass").value = "";
+    })();
+  }
+
+  // ================================================================
+  // SIDEBAR NAVIGATION
+  // ================================================================
+  function switchPage(page) {
+    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+    document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+    document.getElementById("page-" + page).classList.add("active");
+    document.querySelector(`.nav-item[data-page="${page}"]`).classList.add("active");
+  }
+
+  // ================================================================
+  // SETTINGS PERSISTENCE (auto-save, no re-typing needed)
   // ================================================================
   const SETTINGS_FIELDS = ["ghOwner", "ghRepo", "ghBranch", "cloudName", "uploadPreset"];
 
@@ -182,6 +537,7 @@
     SETTINGS_FIELDS.forEach((id) => {
       document.getElementById(id).addEventListener("input", (e) => {
         localStorage.setItem("admin_" + id, e.target.value);
+        flashSettingsSaved();
       });
     });
     document.getElementById("ghToken").addEventListener("input", (e) => {
@@ -189,35 +545,145 @@
     });
   }
 
-  // Local working copy of changes (only committed on "Save")
+  let flashTimer;
+  function flashSettingsSaved() {
+    const el = document.getElementById("settingsSavedMsg");
+    el.style.display = "block";
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => (el.style.display = "none"), 1500);
+  }
+
+  // ================================================================
+  // MEDIA LIBRARY: render, search, filter
+  // ================================================================
   let pendingChanges = {};
+  let activeFilter = "all";
+
+  function setFilter(f) {
+    activeFilter = f;
+    document.querySelectorAll(".filter-chip").forEach((c) => c.classList.remove("active"));
+    document.querySelector(`.filter-chip[data-filter="${f}"]`).classList.add("active");
+    renderMediaGrid();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
 
   function renderMediaGrid() {
     const grid = document.getElementById("mediaGrid");
+    const query = (document.getElementById("searchBox")?.value || "").toLowerCase();
     grid.innerHTML = "";
+
     Object.keys(mediaConfig).forEach((key) => {
       const entry = mediaConfig[key];
+      if (activeFilter !== "all" && entry.type !== activeFilter) return;
+      if (query && !entry.label.toLowerCase().includes(query) && !key.toLowerCase().includes(query)) return;
+
+      const isUpdated = !!pendingChanges[key];
+      const safeLabel = escapeHtml(entry.label);
+      const safeKey = escapeHtml(key);
+      const safeUrl = escapeHtml(entry.url);
       const card = document.createElement("div");
       card.className = "media-card";
       card.id = "card-" + key;
       card.innerHTML = `
-        <img src="${entry.url}" onerror="this.style.opacity=0.2" />
-        <div class="media-info">
-          <h3>${entry.label} <span class="status-pill status-pending" id="status-${key}" style="display:none;">Updated</span></h3>
-          <div class="key">key: ${key}</div>
-          <div class="current-url" id="url-${key}">${entry.url}</div>
-          <button class="btn" onclick="openUploader('${key}')">⬆️ Upload New ${entry.type === 'file' ? 'File' : 'Image'}</button>
+        <div class="media-thumb" id="thumb-${safeKey}"
+             ondragover="event.preventDefault(); this.classList.add('dragover');"
+             ondragleave="this.classList.remove('dragover');"
+             ondrop="handleDrop(event, '${safeKey}')">
+          <img src="${safeUrl}" onerror="this.style.opacity=0.15" />
+          <div class="drop-hint">Drop file to upload</div>
+        </div>
+        <div class="media-body">
+          <h4>${safeLabel} ${isUpdated ? '<span class="status-pill status-updated">Updated</span>' : ""}</h4>
+          <div class="key-tag">${safeKey}</div>
+          <div class="btn-row">
+            <button class="mini-btn primary" onclick="openUploader('${safeKey}')">⬆ Upload</button>
+            <button class="mini-btn" onclick="pasteExistingUrl('${safeKey}')">🔗 Paste URL</button>
+          </div>
         </div>
       `;
       grid.appendChild(card);
     });
+
+    updateDashboardStats();
   }
 
+  function updateDashboardStats() {
+    const keys = Object.keys(mediaConfig);
+    const images = keys.filter((k) => mediaConfig[k].type === "image").length;
+    const files = keys.filter((k) => mediaConfig[k].type === "file").length;
+    const cloudinaryCount = keys.filter((k) => mediaConfig[k].url.includes("res.cloudinary.com")).length;
+
+    document.getElementById("statTotal").innerText = keys.length;
+    document.getElementById("statImages").innerText = images;
+    document.getElementById("statFiles").innerText = files;
+    document.getElementById("statCloudinary").innerText = cloudinaryCount;
+    document.getElementById("statPending").innerText = Object.keys(pendingChanges).length;
+  }
+
+  function markUpdated(key, url) {
+    mediaConfig[key].url = url;
+    pendingChanges[key] = url;
+    renderMediaGrid();
+    document.getElementById("saveMsg").innerText =
+      Object.keys(pendingChanges).length + " item(s) changed — click Save to publish.";
+  }
+
+  // ================================================================
+  // DRAG & DROP UPLOAD (fast path — drops straight into Cloudinary)
+  // ================================================================
+  function handleDrop(event, key) {
+    event.preventDefault();
+    document.getElementById("thumb-" + key).classList.remove("dragover");
+    const file = event.dataTransfer.files[0];
+    if (!file) return;
+    uploadFileDirectly(file, key);
+  }
+
+  async function uploadFileDirectly(file, key) {
+    const cloudName = document.getElementById("cloudName").value.trim();
+    const uploadPreset = document.getElementById("uploadPreset").value.trim();
+    if (!cloudName || !uploadPreset) {
+      alert("Please fill in Cloudinary Cloud Name and Upload Preset in Connection Settings first.");
+      switchPage("settings");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    document.getElementById("saveMsg").innerText = "Uploading " + file.name + "...";
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (data.secure_url) {
+        markUpdated(key, data.secure_url);
+      } else {
+        alert("Upload failed: " + (data.error?.message || "Unknown error"));
+      }
+    } catch (err) {
+      alert("Upload error: " + err.message);
+    }
+  }
+
+  // ================================================================
+  // UPLOAD WIDGET — supports device, URL, camera, Google Drive,
+  // Dropbox, and image search (Drive/Dropbox require enabling under
+  // Cloudinary Console → Settings → Upload → Sources)
+  // ================================================================
   function openUploader(key) {
     const cloudName = document.getElementById("cloudName").value.trim();
     const uploadPreset = document.getElementById("uploadPreset").value.trim();
     if (!cloudName || !uploadPreset) {
-      alert("Pehle upar 'Cloudinary Cloud Name' aur 'Upload Preset' bharo.");
+      alert("Please fill in Cloudinary Cloud Name and Upload Preset in Connection Settings first.");
+      switchPage("settings");
       return;
     }
     const widget = cloudinary.createUploadWidget(
@@ -225,22 +691,14 @@
         cloudName: cloudName,
         uploadPreset: uploadPreset,
         multiple: false,
-        resourceType: mediaConfig[key].type === "file" ? "auto" : "image"
+        sources: ["local", "url", "camera", "google_drive", "dropbox", "image_search"],
+        resourceType: mediaConfig[key].type === "file" ? "auto" : "image",
+        showAdvancedOptions: false,
+        showPoweredBy: false
       },
       (error, result) => {
         if (!error && result && result.event === "success") {
-          const newUrl = result.info.secure_url;
-          mediaConfig[key].url = newUrl;
-          pendingChanges[key] = newUrl;
-
-          document.querySelector(`#card-${key} img`).src = newUrl;
-          document.getElementById(`url-${key}`).innerText = newUrl;
-          const pill = document.getElementById(`status-${key}`);
-          pill.style.display = "inline-block";
-          pill.className = "status-pill status-updated";
-
-          document.getElementById("saveMsg").innerText =
-            Object.keys(pendingChanges).length + " image(s) change hui — Save button dabao.";
+          markUpdated(key, result.info.secure_url);
         }
       }
     );
@@ -248,7 +706,21 @@
   }
 
   // ================================================================
-  // SAVE TO GITHUB (updates media-config.js file directly in repo)
+  // MANUAL URL PASTE (for images already hosted anywhere — Cloudinary,
+  // Drive share links, Dropbox, other CDNs, etc.)
+  // ================================================================
+  function pasteExistingUrl(key) {
+    const url = prompt("Paste the direct link to the image or file:\n(Cloudinary Media Library → click image → Copy URL, or any public direct link)");
+    if (!url) return;
+    if (!url.startsWith("http")) {
+      alert("This doesn't look like a valid link. It should start with http:// or https://");
+      return;
+    }
+    markUpdated(key, url);
+  }
+
+  // ================================================================
+  // SAVE TO GITHUB (commits updated media-config.js to the repo)
   // ================================================================
   async function saveAllChanges() {
     const owner = document.getElementById("ghOwner").value.trim();
@@ -258,31 +730,29 @@
     const path = "media-config.js";
 
     if (!owner || !repo || !token) {
-      alert("Pehle GitHub Username, Repo Name aur Token bharo.");
+      alert("Please fill in GitHub Username, Repository Name, and Token in Connection Settings first.");
+      switchPage("settings");
       return;
     }
     if (Object.keys(pendingChanges).length === 0) {
-      alert("Koi naya change nahi hai save karne ke liye.");
+      alert("There are no changes to save yet.");
       return;
     }
 
-    document.getElementById("saveMsg").innerText = "Saving... GitHub par update ho raha hai.";
+    document.getElementById("saveMsg").innerText = "Saving to GitHub...";
 
     try {
-      // Step 1: current file ka SHA lo (GitHub ko chahiye update ke liye)
       const getRes = await fetch(
         `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
         { headers: { Authorization: `token ${token}` } }
       );
-      if (!getRes.ok) throw new Error("File nahi mili — repo/branch/token check karo.");
+      if (!getRes.ok) throw new Error("Could not find the file — check repo name, branch, or token.");
       const getData = await getRes.json();
       const sha = getData.sha;
 
-      // Step 2: naya file content banao (updated mediaConfig ke sath)
       const newFileContent = generateConfigFileText();
       const encodedContent = btoa(unescape(encodeURIComponent(newFileContent)));
 
-      // Step 3: GitHub par PUT karke update commit karo
       const putRes = await fetch(
         `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
         {
@@ -300,17 +770,17 @@
         }
       );
 
-      if (!putRes.ok) throw new Error("Save fail hua — token permissions check karo.");
+      if (!putRes.ok) throw new Error("Save failed — check token permissions (needs Contents: Read & write).");
 
       document.getElementById("saveMsg").innerText =
-        "✅ Save ho gaya! Netlify 2-3 minute me website update kar dega.";
+        "✓ Saved! Your live site will update in 1–2 minutes.";
       pendingChanges = {};
+      updateDashboardStats();
     } catch (err) {
-      document.getElementById("saveMsg").innerText = "❌ Error: " + err.message;
+      document.getElementById("saveMsg").innerText = "✗ Error: " + err.message;
     }
   }
 
-  // Rebuilds the media-config.js file text with updated URLs
   function generateConfigFileText() {
     let entries = Object.keys(mediaConfig).map((key) => {
       const e = mediaConfig[key];

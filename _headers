@@ -1,0 +1,19 @@
+# ============================================================
+# Netlify reads this file automatically and applies these
+# HTTP security headers to every response. No server needed —
+# this works on the free plan.
+# ============================================================
+
+# Extra-strict rules for the admin panel
+/admin.html
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# Baseline protection for the whole site
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
