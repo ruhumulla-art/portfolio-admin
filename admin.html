@@ -153,9 +153,40 @@
       document.getElementById("loginScreen").style.display = "none";
       document.getElementById("adminPanel").style.display = "block";
       renderMediaGrid();
+      loadSavedSettings();
+      attachSettingsAutoSave();
     } else {
       document.getElementById("loginError").innerText = "Galat password, dubara try karo.";
     }
+  }
+
+  // ================================================================
+  // REMEMBER SETTINGS SO FORM DOESN'T EMPTY OUT EVERY LOGIN
+  // Non-sensitive fields (username, repo, branch, cloudinary info)
+  // are saved in localStorage (permanent, this device only).
+  // The GitHub token is saved in sessionStorage only (cleared when
+  // you close the browser tab) - safer, since it's a sensitive key.
+  // ================================================================
+  const SETTINGS_FIELDS = ["ghOwner", "ghRepo", "ghBranch", "cloudName", "uploadPreset"];
+
+  function loadSavedSettings() {
+    SETTINGS_FIELDS.forEach((id) => {
+      const saved = localStorage.getItem("admin_" + id);
+      if (saved) document.getElementById(id).value = saved;
+    });
+    const savedToken = sessionStorage.getItem("admin_ghToken");
+    if (savedToken) document.getElementById("ghToken").value = savedToken;
+  }
+
+  function attachSettingsAutoSave() {
+    SETTINGS_FIELDS.forEach((id) => {
+      document.getElementById(id).addEventListener("input", (e) => {
+        localStorage.setItem("admin_" + id, e.target.value);
+      });
+    });
+    document.getElementById("ghToken").addEventListener("input", (e) => {
+      sessionStorage.setItem("admin_ghToken", e.target.value);
+    });
   }
 
   // Local working copy of changes (only committed on "Save")
