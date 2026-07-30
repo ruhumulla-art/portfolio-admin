@@ -1,5 +1,5 @@
 /*
-  MEDIA CONFIG FILE - auto-updated by admin.html, save time: 2026-07-30T08:08:20.965Z
+  MEDIA CONFIG FILE - auto-updated by admin.html, save time: 2026-07-30T09:52:16.779Z
 */
 
 const mediaConfig = {
@@ -48,13 +48,13 @@ const mediaConfig = {
   adsCtrClicks: {
     label: "Google Ads - CTR & Clicks",
     type: "image",
-    url: "https://res.cloudinary.com/dfzyrcron/image/upload/v1767512383/Google_ads_CTR_clicks_wengkg.png"
+    url: "https://drive.google.com/file/d/1Sb1BXKjwVrZgq8D_UUUxyI3btamqHvWN/view?usp=drive_link"
   },
 
   adsApprovalEmail: {
     label: "Google Ads - Approval Email",
     type: "image",
-    url: "Google ads Approval Email.png"
+    url: "https://drive.google.com/file/d/1Sb1BXKjwVrZgq8D_UUUxyI3btamqHvWN/view?usp=drive_link"
   },
 
   adsCampaign: {
