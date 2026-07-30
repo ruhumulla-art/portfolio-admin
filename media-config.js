@@ -1,12 +1,12 @@
 /*
-  MEDIA CONFIG FILE - auto-updated by admin.html, save time: 2026-07-30T05:55:37.168Z
+  MEDIA CONFIG FILE - auto-updated by admin.html, save time: 2026-07-30T06:03:53.226Z
 */
 
 const mediaConfig = {
   profileImage: {
     label: "Profile Photo (About Section)",
     type: "image",
-    url: "https://res.cloudinary.com/dfzyrcron/image/upload/v1785390935/qrvn6uvjxdyq2blzdlca.png"
+    url: "https://res.cloudinary.com/dfzyrcron/image/upload/v1785391426/eygdrb139nn85nxyzk8h.png"
   },
 
   cvFile: {
