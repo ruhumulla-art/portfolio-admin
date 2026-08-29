@@ -1,5 +1,5 @@
 /*
-  MEDIA CONFIG FILE - auto-updated by admin.html, save time: 2026-08-29T07:28:55.155Z
+  MEDIA CONFIG FILE - auto-updated by admin.html, save time: 2026-08-29T07:30:34.654Z
 */
 
 const mediaConfig = {
@@ -12,7 +12,7 @@ const mediaConfig = {
   cvFile: {
     label: "CV / Resume PDF",
     type: "file",
-    url: ""
+    url: "https://res.cloudinary.com/dfzyrcron/image/upload/v1787988628/gqa5ivmbdlnqujr3v7jj.pdf"
   },
 
   iamsProjectImage: {
